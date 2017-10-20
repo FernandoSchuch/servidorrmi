@@ -1,5 +1,5 @@
 @echo off
-cd servidorrmi\build\classes
+cd build\classes
 echo Gerando Stubs...
 echo[
 echo[
