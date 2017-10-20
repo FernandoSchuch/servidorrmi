@@ -4,7 +4,11 @@
  * and open the template in the editor.
  */
 
-package trabalhormiserver;
+package testes;
+
+import trabalhormiserver.CadastroNoticias;
+import trabalhormiserver.GerenciadorNoticiasLidasRecebidas;
+import trabalhormiserver.Noticia;
 
 /** 
  * Projeto....: TrabalhoRMIServer

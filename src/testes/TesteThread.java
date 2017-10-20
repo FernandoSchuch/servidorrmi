@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package trabalhormiserver;
+package testes;
 
 /**
  * Projeto....: TrabalhoRMIServer Criado em..: 12/10/2017, 12:33:51 Arquivo....:

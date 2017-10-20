@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package trabalhormiserver;
+package testes;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -17,6 +17,13 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import trabalhormiserver.CadastroNoticias;
+import trabalhormiserver.CadastroUsuario;
+import trabalhormiserver.GerenciadorLog;
+import trabalhormiserver.GerenciadorNotificacoes;
+import trabalhormiserver.Noticia;
+import trabalhormiserver.NoticiaProtocol;
+import trabalhormiserver.Usuario;
 
 /**
  * Projeto....: TrabalhoRMIServer Criado em..: 30/09/2017, 08:34:26 Arquivo....:
