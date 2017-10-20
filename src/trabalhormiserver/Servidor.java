@@ -1,24 +1,33 @@
 package trabalhormiserver;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class Servidor extends UnicastRemoteObject implements Service {
 
+    private String ip;
+    private String porta;
+
     public Servidor() throws RemoteException {
         super();
-        GerenciadorLog.getInstance().ativarLogs();
+        carregarConfiguracoes();
+        GerenciadorLog.getInstance().printLog("Iniciando servidor...");
     }
 
     public static void main(String[] args) {
         try {
             Servidor _servidor = new Servidor();
-            String _local = "//192.168.43.232:1234/service";
+            String _local = "//" + _servidor.ip + ":" + _servidor.porta + "/service";
             Naming.rebind(_local, _servidor);
+            GerenciadorLog.getInstance().printLogSucesso("Servidor iniciado!");
         } catch (RemoteException e) {
             System.err.println("Erro: " + e.getMessage());
         } catch (MalformedURLException ex) {
@@ -26,7 +35,6 @@ public class Servidor extends UnicastRemoteObject implements Service {
         }
     }
 
-    //Implementar
     @Override
     public InOut.OutLogar logar(Usuario user) {
         GerenciadorLog.getInstance().printLog("Usuario " + user.login + " solicitando autenticação.");
@@ -54,7 +62,6 @@ public class Servidor extends UnicastRemoteObject implements Service {
         return out;
     }
 
-    //Implementar instance off
     @Override
     public String criar(Usuario user) {
         GerenciadorLog.getInstance().printLog("Usuario " + user.login + " solicitou cadastro.");
@@ -69,7 +76,6 @@ public class Servidor extends UnicastRemoteObject implements Service {
         return "";
     }
 
-    //Implementar
     @Override
     public void publicar(Noticia news) {
         GerenciadorLog.getInstance().printLog("Escritor " + news.publicador.login + " enviou uma noticia.");
@@ -127,7 +133,6 @@ public class Servidor extends UnicastRemoteObject implements Service {
         GerenciadorNoticiasLidasRecebidas.getInstance().moverNaoRecebidaToNaoLida(userLogin, noticias);
     }
 
-    //Noticias de quando estava off
     @Override
     public ArrayList<Noticia> getNoticiasNaoRecebidas(String userLogin) {
         GerenciadorLog.getInstance().printLog("Enviando notícias que o usuário " + userLogin + " ainda não recebeu");
@@ -195,10 +200,8 @@ public class Servidor extends UnicastRemoteObject implements Service {
     public ArrayList<Noticia> blendNoticias(ArrayList<Noticia> noticiasFiltradas, ArrayList<Noticia> noticiasNaoLidasNaoRecebidas) {
         ArrayList<Noticia> noticiasMarcadas = new ArrayList<Noticia>();
         for (Noticia noticia : noticiasFiltradas) {
-//            noticia.lida = true;
             for (Noticia noticiaNaoLidaOuNaoRecebida : noticiasNaoLidasNaoRecebidas) {
                 if (noticia.codigo.equals(noticiaNaoLidaOuNaoRecebida.codigo)) {
-//                    noticia.lida = false;
                     noticiasMarcadas.add(new Noticia(noticiaNaoLidaOuNaoRecebida));
                     break;
                 }
@@ -207,4 +210,35 @@ public class Servidor extends UnicastRemoteObject implements Service {
         return noticiasMarcadas;
     }
 
+    private void carregarConfiguracoes() {
+        Properties prop = new Properties();
+        InputStream input = null;
+        try {
+            input = new FileInputStream("config.properties");
+//            input = this.getClass().getResourceAsStream("./config.properties");
+            // load a properties file
+            prop.load(input);
+            // get the property value and print it out
+            this.ip = prop.getProperty("ip");
+            this.porta = prop.getProperty("porta");
+
+            if (prop.getProperty("ativar_logs").equalsIgnoreCase("S")) {
+                GerenciadorLog.getInstance().ativarLogs();
+            }
+            GerenciadorLog.getInstance().printLogSucesso("Configurações carregadas com sucesso!");
+            GerenciadorLog.getInstance().printLogSucesso("Logs habilitados com sucesso!");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            System.exit(0);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(0);
+                }
+            }
+        }
+    }
 }
