@@ -214,7 +214,7 @@ public class Servidor extends UnicastRemoteObject implements Service {
         Properties prop = new Properties();
         InputStream input = null;
         try {
-            input = new FileInputStream("config.properties");
+            input = new FileInputStream( System.getProperty("user.dir") + "/config.properties");
 //            input = this.getClass().getResourceAsStream("./config.properties");
             // load a properties file
             prop.load(input);
