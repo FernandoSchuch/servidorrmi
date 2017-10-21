@@ -8,13 +8,15 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
 public class Servidor extends UnicastRemoteObject implements Service {
 
-    private String ip;
-    private String porta;
+    public static String IP;
+    public static String PORTA;
+    public static int NUMERO_MAXIMO_NOTICIAS_PUBLICADAS;
 
     public Servidor() throws RemoteException {
         super();
@@ -25,7 +27,7 @@ public class Servidor extends UnicastRemoteObject implements Service {
     public static void main(String[] args) {
         try {
             Servidor _servidor = new Servidor();
-            String _local = "//" + _servidor.ip + ":" + _servidor.porta + "/service";
+            String _local = "//" + _servidor.IP + ":" + _servidor.PORTA + "/service";
             Naming.rebind(_local, _servidor);
             GerenciadorLog.getInstance().printLogSucesso("Servidor iniciado!");
         } catch (RemoteException e) {
@@ -139,6 +141,7 @@ public class Servidor extends UnicastRemoteObject implements Service {
         GerenciadorLog.getInstance().printLog("Marcando notícias como recebidas para o usuário " + userLogin);
         ArrayList<Noticia> noticiasNaoRecebidas = GerenciadorNoticiasLidasRecebidas.getInstance().getNoticiasNaoRecebidas(userLogin);
         GerenciadorNoticiasLidasRecebidas.getInstance().moverNaoRecebidaToNaoLida(userLogin, noticiasNaoRecebidas);
+        Collections.reverse(noticiasNaoRecebidas);
         return noticiasNaoRecebidas;
     }
 
@@ -151,6 +154,8 @@ public class Servidor extends UnicastRemoteObject implements Service {
         }
         ArrayList<Noticia> noticiasNaoLidasNaoRecebidas = GerenciadorNoticiasLidasRecebidas.getInstance().getNoticiasTodasNoticiasMonitoradas(userLogin);
         ArrayList<Noticia> noticiasMarcadas = blendNoticias(noticiasFiltradas, noticiasNaoLidasNaoRecebidas);
+        Collections.reverse(noticiasMarcadas);
+
         return noticiasMarcadas;
     }
 
@@ -160,17 +165,20 @@ public class Servidor extends UnicastRemoteObject implements Service {
         ArrayList<Noticia> noticiasFiltradas = CadastroNoticias.getInstance().getTodasNoticias();
         ArrayList<Noticia> noticiasNaoLidasNaoRecebidas = GerenciadorNoticiasLidasRecebidas.getInstance().getNoticiasTodasNoticiasMonitoradas(userLogin);
         ArrayList<Noticia> noticiasMarcadas = blendNoticias(noticiasFiltradas, noticiasNaoLidasNaoRecebidas);
+        Collections.reverse(noticiasMarcadas);
         return noticiasMarcadas;
     }
 
     @Override
     public Noticia getUltimaNoticia(String userLogin, Topico topic) {
-        GerenciadorLog.getInstance().printLog("Enviando a última notícia de " + topic.nome + " para o usuário ");
+        GerenciadorLog.getInstance().printLog("Enviando a última notícia de " + topic.nome + " para o usuário " + userLogin);
         Noticia ultimaNoticia = CadastroNoticias.getInstance().getUltimaNoticia(topic);
         if (userLogin.equalsIgnoreCase("visitante")) {
             ultimaNoticia.lida = false;
+            return ultimaNoticia;
         }
-        return ultimaNoticia;
+        Noticia noticiaControlada = GerenciadorNoticiasLidasRecebidas.getInstance().getNoticia(userLogin, ultimaNoticia.codigo);
+        return noticiaControlada;
     }
 
     //OK
@@ -214,13 +222,13 @@ public class Servidor extends UnicastRemoteObject implements Service {
         Properties prop = new Properties();
         InputStream input = null;
         try {
-            input = new FileInputStream( System.getProperty("user.dir") + "/config.properties");
-//            input = this.getClass().getResourceAsStream("./config.properties");
+            input = new FileInputStream(System.getProperty("user.dir") + "/config.properties");
             // load a properties file
             prop.load(input);
             // get the property value and print it out
-            this.ip = prop.getProperty("ip");
-            this.porta = prop.getProperty("porta");
+            this.IP = prop.getProperty("ip");
+            this.PORTA = prop.getProperty("porta");
+            this.NUMERO_MAXIMO_NOTICIAS_PUBLICADAS = Integer.valueOf(prop.getProperty("numero_maximo_noticias_cadastradas"));
 
             if (prop.getProperty("ativar_logs").equalsIgnoreCase("S")) {
                 GerenciadorLog.getInstance().ativarLogs();

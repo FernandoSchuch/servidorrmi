@@ -14,5 +14,5 @@ package trabalhormiserver;
  * @author Pablo Oliveira (jntpablo)
  */
 public enum StatusNoticia {
-    NAO_RECEBIDA, NAO_LIDA, LIDA;
+    AGUARDANDO_ENVIO, NAO_RECEBIDA, NAO_LIDA, LIDA;
 }

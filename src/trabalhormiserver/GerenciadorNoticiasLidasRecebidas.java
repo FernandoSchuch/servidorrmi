@@ -1,12 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package trabalhormiserver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +15,7 @@ import java.util.Map;
 public class GerenciadorNoticiasLidasRecebidas {
 
     //  <loginUsuario, noticiasNaolLida>
-    private final Map<String, List<NoticiaMonitorada>> noticiasNaoLidas = new HashMap();
+    private final Map<String, List<NoticiaMonitorada>> noticiasPorUsuario = new HashMap();
     private static GerenciadorNoticiasLidasRecebidas self = null;
 
     private GerenciadorNoticiasLidasRecebidas() {
@@ -40,19 +36,19 @@ public class GerenciadorNoticiasLidasRecebidas {
             NoticiaMonitorada noticiaMonitorada = null;
             if (loginUsuario != null && !loginUsuario.isEmpty()) {
                 if (usuariosInscritosNesteTopico.contains(loginUsuario)) {
-                    noticiaMonitorada = new NoticiaMonitorada(StatusNoticia.NAO_RECEBIDA, noticia);
+                    noticiaMonitorada = new NoticiaMonitorada(StatusNoticia.AGUARDANDO_ENVIO, noticia);
                 } else {
                     noticiaMonitorada = new NoticiaMonitorada(StatusNoticia.NAO_LIDA, noticia);
                 }
-                this.noticiasNaoLidas.get(loginUsuario).add(noticiaMonitorada);
+                this.noticiasPorUsuario.get(loginUsuario).add(noticiaMonitorada);
             } else {
-                for (String usuario : this.noticiasNaoLidas.keySet()) {
+                for (String usuario : this.noticiasPorUsuario.keySet()) {
                     if (usuariosInscritosNesteTopico.contains(usuario)) {
-                        noticiaMonitorada = new NoticiaMonitorada(StatusNoticia.NAO_RECEBIDA, noticia);
+                        noticiaMonitorada = new NoticiaMonitorada(StatusNoticia.AGUARDANDO_ENVIO, noticia);
                     } else {
                         noticiaMonitorada = new NoticiaMonitorada(StatusNoticia.NAO_LIDA, noticia);
                     }
-                    this.noticiasNaoLidas.get(usuario).add(noticiaMonitorada);
+                    this.noticiasPorUsuario.get(usuario).add(noticiaMonitorada);
                 }
             }
         }
@@ -65,34 +61,23 @@ public class GerenciadorNoticiasLidasRecebidas {
         iniciarMonitoramentoNoticiaPorUsuario(null, noticias);
     }
 
-//    public boolean adicionarNoticiaMonitorada(List<String> codigosUsuario, Noticia noticia) {
-//        for (String loginUsuario : codigosUsuario) {
-//            adicionarNoticiaMonitorada(loginUsuario, noticia);
-//        }
-//
-//        return true;
-//    }
-//
-//    public boolean adicionarNoticiaMonitorada(String loginUsuario, Noticia noticia) {
-//        if (loginUsuario != null && !loginUsuario.isEmpty()) {
-//            NoticiaMonitorada noticiaMonitorada = new NoticiaMonitorada(StatusNoticia.NAO_RECEBIDA, noticia);
-//            adicionarUsuarioParaControle(loginUsuario);
-//            this.noticiasNaoLidas.get(loginUsuario).add(noticiaMonitorada);
-//        } else {
-//            return false;
-//        }
-//        return true;
-//    }
-//    public boolean removerNoticia(String loginUsuario, Integer codigoNoticia) {
-//        if (this.noticiasNaoLidas.get(loginUsuario).contains(codigoNoticia)) {
-//            this.noticiasNaoLidas.get(loginUsuario).remove(codigoNoticia);
-//        }
-//        return true;
-//    }
+    public Noticia getNoticia(String loginUsuario, Integer codigoNoticia) {
+        Noticia copia = null;
+        for (NoticiaMonitorada noticia : this.noticiasPorUsuario.get(loginUsuario)) {
+            if (noticia.noticia.codigo.compareTo(codigoNoticia) == 0) {
+                copia = new Noticia(noticia.noticia);
+                if (noticia.status.equals(StatusNoticia.LIDA)) {
+                    copia.lida = true;
+                }
+            }
+        }
+        return copia;
+    }
+
     public ArrayList<Noticia> getNoticiasNaoLidas(String loginUsuario) {
         ArrayList noticiasNaoLidas = new ArrayList<Noticia>();
         Noticia copia;
-        for (NoticiaMonitorada noticiaMonitorada : this.noticiasNaoLidas.get(loginUsuario)) {
+        for (NoticiaMonitorada noticiaMonitorada : this.noticiasPorUsuario.get(loginUsuario)) {
             if (noticiaMonitorada.status.equals(StatusNoticia.NAO_LIDA)) {
                 copia = new Noticia(noticiaMonitorada.noticia);
                 copia.lida = false;
@@ -106,7 +91,7 @@ public class GerenciadorNoticiasLidasRecebidas {
         ArrayList noticiasNaoRecebidas = new ArrayList<Noticia>();
         Noticia copia;
 
-        for (NoticiaMonitorada noticiaMonitorada : this.noticiasNaoLidas.get(loginUsuario)) {
+        for (NoticiaMonitorada noticiaMonitorada : this.noticiasPorUsuario.get(loginUsuario)) {
             if (noticiaMonitorada.status.equals(StatusNoticia.NAO_RECEBIDA)) {
                 copia = new Noticia(noticiaMonitorada.noticia);
                 noticiasNaoRecebidas.add(copia);
@@ -119,7 +104,7 @@ public class GerenciadorNoticiasLidasRecebidas {
         ArrayList noticiasNaoRecebidas = new ArrayList<Noticia>();
         Noticia copia;
 
-        for (NoticiaMonitorada noticiaMonitorada : this.noticiasNaoLidas.get(loginUsuario)) {
+        for (NoticiaMonitorada noticiaMonitorada : this.noticiasPorUsuario.get(loginUsuario)) {
             if (noticiaMonitorada.status.equals(StatusNoticia.LIDA)) {
                 copia = new Noticia(noticiaMonitorada.noticia);
                 copia.lida = true;
@@ -133,7 +118,7 @@ public class GerenciadorNoticiasLidasRecebidas {
         ArrayList noticiasNaoRecebidas = new ArrayList<Noticia>();
         Noticia copia;
 
-        for (NoticiaMonitorada noticiaMonitorada : this.noticiasNaoLidas.get(loginUsuario)) {
+        for (NoticiaMonitorada noticiaMonitorada : this.noticiasPorUsuario.get(loginUsuario)) {
             copia = new Noticia(noticiaMonitorada.noticia);
             if (noticiaMonitorada.status.equals(StatusNoticia.LIDA)) {
                 copia.lida = true;
@@ -145,24 +130,24 @@ public class GerenciadorNoticiasLidasRecebidas {
 
     public void adicionarUsuarioParaControle(String loginUsuario) {
         if (!usuarioJaRegistrado(loginUsuario)) {
-            this.noticiasNaoLidas.put(loginUsuario, new ArrayList<>());
+            this.noticiasPorUsuario.put(loginUsuario, new ArrayList<>());
         }
     }
 
     private boolean usuarioJaRegistrado(String loginUsuario) {
-        return this.noticiasNaoLidas.keySet().contains(loginUsuario);
+        return this.noticiasPorUsuario.keySet().contains(loginUsuario);
     }
-    
+
     public boolean moverNaoRecebidaToNaoLida(String loginUsuario, ArrayList<Noticia> noticias) {
         for (Noticia noticia : noticias) {
             moverNaoRecebidaToNaoLida(loginUsuario, noticia);
         }
         return true;
     }
-    
+
     public boolean moverNaoRecebidaToNaoLida(String loginUsuario, Noticia noticia) {
         if (noticia != null) {
-            List<NoticiaMonitorada> noticiasUsuario = this.noticiasNaoLidas.get(loginUsuario);
+            List<NoticiaMonitorada> noticiasUsuario = this.noticiasPorUsuario.get(loginUsuario);
             for (NoticiaMonitorada noticiaMonitorada : noticiasUsuario) {
                 if (noticiaMonitorada.noticia.codigo.equals(noticia.codigo) && noticiaMonitorada.status.equals(StatusNoticia.NAO_RECEBIDA)) {
                     noticiaMonitorada.status = StatusNoticia.NAO_LIDA;
@@ -190,7 +175,7 @@ public class GerenciadorNoticiasLidasRecebidas {
 
     public boolean marcarComoNaoLida(String loginUsuario, Noticia noticia) {
         if (noticia != null) {
-            List<NoticiaMonitorada> noticiasUsuario = this.noticiasNaoLidas.get(loginUsuario);
+            List<NoticiaMonitorada> noticiasUsuario = this.noticiasPorUsuario.get(loginUsuario);
             for (NoticiaMonitorada noticiaMonitorada : noticiasUsuario) {
                 if (noticiaMonitorada.noticia.codigo.equals(noticia.codigo)) {
                     noticiaMonitorada.status = StatusNoticia.NAO_LIDA;
@@ -203,9 +188,24 @@ public class GerenciadorNoticiasLidasRecebidas {
         return true;
     }
 
+    public boolean marcarComoNaoRecebida(String loginUsuario, Noticia noticia) {
+        if (noticia != null) {
+            List<NoticiaMonitorada> noticiasUsuario = this.noticiasPorUsuario.get(loginUsuario);
+            for (NoticiaMonitorada noticiaMonitorada : noticiasUsuario) {
+                if (noticiaMonitorada.noticia.codigo.equals(noticia.codigo)) {
+                    noticiaMonitorada.status = StatusNoticia.NAO_RECEBIDA;
+                    break;
+                }
+            }
+        } else {
+            return false;
+        }
+        return true;
+    }
+
     public boolean marcarComoLida(String loginUsuario, Noticia noticia) {
         if (noticia != null) {
-            List<NoticiaMonitorada> noticiasUsuario = this.noticiasNaoLidas.get(loginUsuario);
+            List<NoticiaMonitorada> noticiasUsuario = this.noticiasPorUsuario.get(loginUsuario);
             for (NoticiaMonitorada noticiaMonitorada : noticiasUsuario) {
                 if (noticiaMonitorada.noticia.codigo.equals(noticia.codigo)) {
                     noticiaMonitorada.status = StatusNoticia.LIDA;
@@ -213,6 +213,28 @@ public class GerenciadorNoticiasLidasRecebidas {
                 }
             }
 
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean removerNoticiaDoMonitoramento(Noticia noticia) {
+        if (noticia != null) {
+            for (String loginUsuario : this.noticiasPorUsuario.keySet()) {
+                int indiceNoticiaAExcluir = -1;
+                List<NoticiaMonitorada> noticiasUsuario = this.noticiasPorUsuario.get(loginUsuario);
+                for (int i = 0; i < noticiasUsuario.size(); i++) {
+                    NoticiaMonitorada noticiaMonitorada = noticiasUsuario.get(i);
+                    if (noticiaMonitorada.noticia.codigo.compareTo(noticia.codigo) == 0) {
+                        indiceNoticiaAExcluir = i;
+                        break;
+                    }
+                }
+                if (indiceNoticiaAExcluir >= 0) {
+                    this.noticiasPorUsuario.get(loginUsuario).remove(indiceNoticiaAExcluir);
+                }
+            }
         } else {
             return false;
         }

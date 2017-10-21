@@ -23,16 +23,16 @@ import java.util.logging.Logger;
  */
 public class CadastroNoticias {
 
-    
     private final Map<Integer, Noticia> noticiasCadastradas = new LinkedHashMap<>();
     private static CadastroNoticias self = null;
+    private int contadorNoticia = 0;
 
     private CadastroNoticias() {
         Topico topico = CadastroTopico.getInstance().getTopico(1);
         Escritor e = (Escritor) CadastroUsuario.getInstance().getUsuario("escritor");
         Noticia noticia;
         noticia = new Noticia("Fernandocão", "Texto do Pablito", topico, e);
-        noticia.codigo = noticiasCadastradas.size() + 1;
+        noticia.codigo = ++contadorNoticia;
         noticia.dataPublicacao = "12/12/2012";
         this.noticiasCadastradas.put(noticia.codigo, noticia);
         GerenciadorNoticiasLidasRecebidas.getInstance().adicionarUsuarioParaControle("leitor");
@@ -47,7 +47,14 @@ public class CadastroNoticias {
     }
 
     public Noticia cadastrarNoticia(Noticia noticia) {
-        noticia.codigo = noticiasCadastradas.size() + 1;
+
+        boolean limiteNoticasCadastradasAtigido = getTodasNoticiasTopico(noticia.topico).size() == Servidor.NUMERO_MAXIMO_NOTICIAS_PUBLICADAS;
+        if (limiteNoticasCadastradasAtigido) {
+            Noticia primeiraNoticiaTopico = getPrimeiraNoticia(noticia.topico);
+            this.noticiasCadastradas.remove(primeiraNoticiaTopico.codigo);
+            GerenciadorNoticiasLidasRecebidas.getInstance().removerNoticiaDoMonitoramento(primeiraNoticiaTopico);
+        }
+        noticia.codigo = ++contadorNoticia;
         noticia.dataPublicacao = DateUtil.gerDataAtualFormatada();
         noticiasCadastradas.put(noticia.codigo, noticia);
         return noticia;
@@ -71,7 +78,7 @@ public class CadastroNoticias {
         }
         return noticias;
     }
-    
+
     public ArrayList<Noticia> getTodasNoticiasTopico(Topico topic) {
         ArrayList noticias = new ArrayList<Noticia>();
         for (Integer codigo : noticiasCadastradas.keySet()) {
@@ -96,8 +103,20 @@ public class CadastroNoticias {
         ultimaNoticia = (Noticia) noticiasDesteTopico.get(indiceUltimaNoticia);
         return ultimaNoticia;
     }
-    
-    public Noticia getNoticia(Integer codigoNoticia){
+
+    public Noticia getPrimeiraNoticia(Topico topic) {
+        Noticia primeiraNoticia = null;
+        for (Integer codigo : noticiasCadastradas.keySet()) {
+            Noticia noticia = noticiasCadastradas.get(codigo);
+            if (noticia.topico.codigo.compareTo(topic.codigo) == 0) {
+                primeiraNoticia = noticia;
+                break;
+            }
+        }
+        return primeiraNoticia;
+    }
+
+    public Noticia getNoticia(Integer codigoNoticia) {
         Noticia noticia = this.noticiasCadastradas.get(codigoNoticia);
         return noticia;
     }

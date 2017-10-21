@@ -42,6 +42,7 @@ public class Notificador implements Runnable {
             cliente.close();
             GerenciadorLog.getInstance().printLogSucesso("Noticia enviada com sucesso");
         } catch (IOException ex) {
+            GerenciadorNoticiasLidasRecebidas.getInstance().marcarComoNaoRecebida(this.usuario.login, noticia);
             GerenciadorLog.getInstance().printLogFalha("Ocorreu algum problema na conexão com o usuario " + this.usuario.login);
         }
     }
